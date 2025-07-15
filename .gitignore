@@ -164,10 +164,7 @@ cython_debug/
 #  https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
 
 # VS Code
-.vscode/settings.json
 .vscode/tasks.json
-.vscode/launch.json
-.vscode/extensions.json
 .vscode/c_cpp_properties.json
 .vscode/ssh_config
 .vscode/sftp.json
