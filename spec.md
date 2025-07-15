@@ -95,9 +95,9 @@ Each credential file should contain key-value pairs:
       "command": "uvx",
       "args": ["workspace-mcp"],
       "env": {
-        "GOOGLE_OAUTH_CLIENT_ID": "blablabla.apps.googleusercontent.com",
-        "GOOGLE_OAUTH_CLIENT_SECRET": "blablabla",
-        "USER_GOOGLE_EMAIL": "blablabla"
+        "GOOGLE_OAUTH_CLIENT_ID": "x",
+        "GOOGLE_OAUTH_CLIENT_SECRET": "x",
+        "USER_GOOGLE_EMAIL": "x"
       },
       "type": "stdio"
     }
