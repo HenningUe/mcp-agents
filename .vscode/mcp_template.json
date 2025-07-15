@@ -1,0 +1,25 @@
+{
+	"servers": {
+		"mcp-server-time": {
+			"command": "uvx",
+			"args": [
+				"mcp-server-time"
+			],
+			"type": "stdio"
+		},
+		"google_workspace": {
+			"command": "uvx",
+			"args": [
+				"workspace-mcp"
+			],
+			"env": {
+				"GOOGLE_OAUTH_CLIENT_ID": "%client_id%",
+				"GOOGLE_OAUTH_CLIENT_SECRET": "%client_secret%",
+				"OAUTHLIB_INSECURE_TRANSPORT": "1",
+        		"USER_GOOGLE_EMAIL": "%user_email%"
+			},
+			"type": "stdio"
+		}
+	},
+	"inputs": []
+}
