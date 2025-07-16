@@ -23,6 +23,84 @@ class MCPConfigGenerator:
         self.credentials_dir = Path(credentials_dir)
         self.output_path = Path(output_path)
         self.placeholder_pattern = re.compile(r'%([a-zA-Z_][a-zA-Z0-9_]*)%')
+        self.mcp_agent_packs_dir = Path("mcp_agent_packs")
+    
+    def discover_mcp_configurations(self) -> list[dict[str, str]]:
+        """Discover available MCP template configurations."""
+        configurations = []
+        
+        if not self.mcp_agent_packs_dir.exists():
+            print(f"⚠️  MCP agent packs directory not found: {self.mcp_agent_packs_dir}")
+            return configurations
+        
+        # Scan subdirectories for mcp_template.json files
+        for subdir in self.mcp_agent_packs_dir.iterdir():
+            if subdir.is_dir():
+                template_file = subdir / "mcp_template.json"
+                if template_file.exists():
+                    # Read description from README.md if available
+                    readme_file = subdir / "README.md"
+                    description = ""
+                    if readme_file.exists():
+                        try:
+                            with open(readme_file, 'r', encoding='utf-8') as f:
+                                # Read first line as description
+                                first_line = f.readline().strip()
+                                if first_line.startswith('# '):
+                                    description = first_line[2:]
+                        except Exception:
+                            pass
+                    
+                    configurations.append({
+                        "name": subdir.name,
+                        "path": str(template_file),
+                        "description": description or "No description available"
+                    })
+        
+        return configurations
+    
+    def select_mcp_configuration(self) -> str:
+        """Let user select an MCP configuration."""
+        print("🔍 Discovering available MCP configurations...")
+        print()
+        
+        configurations = self.discover_mcp_configurations()
+        
+        if not configurations:
+            print("❌ No MCP configurations found!")
+            print(f"Please ensure mcp_template.json files exist in subdirectories of {self.mcp_agent_packs_dir}")
+            raise FileNotFoundError("No MCP configurations available")
+        
+        print(f"Found {len(configurations)} MCP configuration(s):")
+        print()
+        
+        # Display available configurations
+        for i, config in enumerate(configurations, 1):
+            print(f"  {i}. {config['name']}")
+            print(f"     📄 {config['description']}")
+            print()
+        
+        # Get user selection
+        while True:
+            try:
+                choice = input(f"Select configuration (1-{len(configurations)}): ").strip()
+                
+                if not choice:
+                    print("❌ Please enter a number!")
+                    continue
+                
+                choice_num = int(choice)
+                if 1 <= choice_num <= len(configurations):
+                    selected_config = configurations[choice_num - 1]
+                    print(f"✓ Selected: {selected_config['name']}")
+                    return selected_config['path']
+                else:
+                    print(f"❌ Invalid selection! Please enter a number between 1 and {len(configurations)}")
+            except ValueError:
+                print("❌ Please enter a valid number!")
+            except KeyboardInterrupt:
+                print("\n❌ Operation cancelled by user")
+                raise
         
     def load_template(self) -> dict[str, tp.Any]:
         """Load the MCP template file."""
@@ -241,22 +319,74 @@ class MCPConfigGenerator:
         print("   - Add mcp.json to .gitignore")
         print("   - Keep credentials/ folder secure")
         print("   - Only commit mcp_template.json to version control")
+        
+    def validate_selected_configuration(self) -> bool:
+        """Validate that the selected configuration is usable."""
+        if not self.template_path.exists():
+            print(f"❌ Selected template file not found: {self.template_path}")
+            return False
+        
+        try:
+            # Try to load and validate the template
+            template = self.load_template()
+            errors = self.validate_template(template)
+            if errors:
+                print("❌ Selected template has validation errors:")
+                for error in errors:
+                    print(f"   - {error}")
+                return False
+        except Exception as e:
+            print(f"❌ Error loading selected template: {e}")
+            return False
+        
+        return True
 
 
 def main():
     """Main entry point."""
     print("🔧 MCP Configuration Generator")
     print("=" * 35)
+    print()
     
-    # You can customize these paths if needed
-    generator = MCPConfigGenerator(
-        template_path=".vscode/mcp_template.json",
-        credentials_dir="credentials",
-        output_path=".vscode/mcp.json"
-    )
+    try:
+        # Create generator with default paths
+        generator = MCPConfigGenerator(
+            credentials_dir="credentials",
+            output_path=".vscode/mcp.json"
+        )
+        
+        # Let user select configuration
+        selected_template_path = generator.select_mcp_configuration()
+        
+        # Update template path
+        generator.template_path = Path(selected_template_path)
+        
+        # Validate the selected configuration
+        if not generator.validate_selected_configuration():
+            return 1
+        
+        print()
+        
+        # Run the generator
+        generator.run()
+        
+    except (FileNotFoundError, ValueError) as e:
+        print(f"❌ Error: {e}")
+        print()
+        print("💡 Make sure you have:")
+        print("   - MCP template files in mcp_agent_packs subdirectories")
+        print("   - Corresponding credential files in the credentials folder")
+        return 1
+    except KeyboardInterrupt:
+        print("\n❌ Operation cancelled by user")
+        return 1
+    except Exception as e:
+        print(f"❌ Unexpected error: {e}")
+        return 1
     
-    generator.run()
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    exit_code = main()
+    exit(exit_code)

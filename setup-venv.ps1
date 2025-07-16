@@ -18,7 +18,7 @@ function Test-PythonExecutable {
     try {
         $version = & $PythonPath --version 2>&1
         if ($LASTEXITCODE -eq 0) {
-            Write-Host "✓ Found Python: $version" -ForegroundColor Green
+            Write-Host "Found Python: $version" -ForegroundColor Green
             return $true
         }
     }
@@ -58,12 +58,12 @@ function Find-CommonPythonPaths {
 
 # Check if .venv already exists
 if (Test-Path ".venv") {
-    Write-Host "⚠️  Virtual environment already exists!" -ForegroundColor Yellow
+    Write-Host "Virtual environment already exists!" -ForegroundColor Yellow
     $response = Read-Host "Do you want to remove it and create a new one? (y/N)"
     if ($response -match "^[Yy]$") {
         Write-Host "Removing existing .venv directory..." -ForegroundColor Yellow
         Remove-Item ".venv" -Recurse -Force
-        Write-Host "✓ Removed existing virtual environment" -ForegroundColor Green
+        Write-Host "Removed existing virtual environment" -ForegroundColor Green
     }
     else {
         Write-Host "Operation cancelled." -ForegroundColor Red
@@ -76,7 +76,7 @@ Write-Host "Checking for Python in PATH..." -ForegroundColor Cyan
 try {
     $pythonInPath = Get-Command python -ErrorAction SilentlyContinue
     if ($pythonInPath -and (Test-PythonExecutable $pythonInPath.Source)) {
-        Write-Host "✓ Found Python in PATH: $($pythonInPath.Source)" -ForegroundColor Green
+        Write-Host "Found Python in PATH: $($pythonInPath.Source)" -ForegroundColor Green
         $defaultPython = $pythonInPath.Source
     }
 }
@@ -149,10 +149,10 @@ try {
     if ($LASTEXITCODE -ne 0) {
         throw "Python venv command failed"
     }
-    Write-Host "✓ Virtual environment created successfully!" -ForegroundColor Green
+    Write-Host "Virtual environment created successfully" -ForegroundColor Green
 }
 catch {
-    Write-Host "❌ Failed to create virtual environment!" -ForegroundColor Red
+    Write-Host "Failed to create virtual environment" -ForegroundColor Red
     Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
     exit 1
 }
@@ -169,14 +169,14 @@ Write-Host "Upgrading pip in virtual environment..." -ForegroundColor Cyan
 try {
     & ".venv\Scripts\python.exe" -m pip install --upgrade pip
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "✓ Pip upgraded successfully!" -ForegroundColor Green
+        Write-Host " Pip upgraded successfully" -ForegroundColor Green
     }
     else {
-        Write-Host "⚠️  Warning: Failed to upgrade pip, but continuing..." -ForegroundColor Yellow
+        Write-Host "Warning: Failed to upgrade pip, but continuing..." -ForegroundColor Yellow
     }
 }
 catch {
-    Write-Host "⚠️  Warning: Failed to upgrade pip, but continuing..." -ForegroundColor Yellow
+    Write-Host "Warning: Failed to upgrade pip, but continuing..." -ForegroundColor Yellow
 }
 
 # Install dependencies if requirements.txt exists
@@ -186,19 +186,19 @@ if (Test-Path "requirements.txt") {
     try {
         & ".venv\Scripts\python.exe" -m pip install -r requirements.txt
         if ($LASTEXITCODE -eq 0) {
-            Write-Host "✓ Dependencies installed successfully!" -ForegroundColor Green
+            Write-Host "Dependencies installed successfully" -ForegroundColor Green
         }
         else {
-            Write-Host "⚠️  Warning: Some dependencies may have failed to install" -ForegroundColor Yellow
+            Write-Host "Warning: Some dependencies may have failed to install" -ForegroundColor Yellow
         }
     }
     catch {
-        Write-Host "⚠️  Warning: Failed to install some dependencies" -ForegroundColor Yellow
+        Write-Host "Warning: Failed to install some dependencies" -ForegroundColor Yellow
     }
 }
 else {
     Write-Host ""
-    Write-Host "ℹ️  No requirements.txt found - skipping dependency installation" -ForegroundColor Blue
+    Write-Host "No requirements.txt found - skipping dependency installation" -ForegroundColor Blue
 }
 
 # Success message
@@ -214,7 +214,7 @@ Write-Host "To activate the virtual environment:" -ForegroundColor Cyan
 Write-Host "  .venv\Scripts\Activate.ps1" -ForegroundColor White
 Write-Host ""
 Write-Host "Or run the MCP configuration generator:" -ForegroundColor Cyan
-Write-Host "  .\generate_mcp_config.bat" -ForegroundColor White
+Write-Host "  .\generate_mcp_config.cmd" -ForegroundColor White
 Write-Host ""
 
 # Ask if user wants to run the configuration generator
@@ -222,11 +222,11 @@ $runConfig = Read-Host "Do you want to run the MCP configuration generator now? 
 if ($runConfig -match "^[Yy]$") {
     Write-Host ""
     Write-Host "Running MCP configuration generator..." -ForegroundColor Cyan
-    if (Test-Path "generate_mcp_config.bat") {
-        & ".\generate_mcp_config.bat"
+    if (Test-Path "generate_mcp_config.cmd") {
+        & ".\generate_mcp_config.cmd"
     }
     else {
-        Write-Host "❌ generate_mcp_config.bat not found!" -ForegroundColor Red
+        Write-Host "generate_mcp_config.cmd not found!" -ForegroundColor Red
     }
 }
 

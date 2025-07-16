@@ -1,0 +1,20 @@
+{
+    "servers": {
+        "mcp-server-time": {
+            "command": "uvx",
+            "args": [
+                "mcp-server-time"
+            ],
+            "type": "stdio"
+        },
+        "filesystem": {
+            "command": "uvx",
+            "args": [
+                "mcp-server-filesystem",
+                "/path/to/allowed/directory"
+            ],
+            "type": "stdio"
+        }
+    },
+    "inputs": []
+}
