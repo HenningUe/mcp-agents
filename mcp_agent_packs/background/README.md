@@ -6,7 +6,8 @@ Workspace integration.
 ## Included Servers
 
 - **mcp-server-time**: Provides time-related functionality
-- **google_workspace**: Google Workspace integration with OAuth support
+- **google_workspace**: Google Workspace integration with OAuth support,
+  https://github.com/taylorwilsdon/google_workspace_mcp
 
 ## Required Credentials
 

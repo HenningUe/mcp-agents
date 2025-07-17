@@ -19,6 +19,14 @@
         		"USER_GOOGLE_EMAIL": "%user_email%"
 			},
 			"type": "stdio"
+		},
+		"filesystem": {
+		"command": "npx",
+		"args": [
+			"-y",
+			"@modelcontextprotocol/server-filesystem",
+			"%temp%/mcp-server-filesystem"
+			]
 		}
 	},
 	"inputs": []

@@ -1,1 +1,1 @@
-https://github.com/taylorwilsdon/google_workspace_mcp
+https://github.com/modelcontextprotocol/servers

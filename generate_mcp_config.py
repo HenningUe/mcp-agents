@@ -9,6 +9,8 @@ with credential files, replacing placeholders with actual values.
 import json
 import os
 import re
+import subprocess
+import sys
 import typing as tp
 from pathlib import Path
 
@@ -51,15 +53,20 @@ class MCPConfigGenerator:
                         except Exception:
                             pass
                     
-                    configurations.append({
+                    config_data = {
                         "name": subdir.name,
                         "path": str(template_file),
                         "description": description or "No description available"
-                    })
+                    }
+                    prepare_script = subdir / "prepare.py"
+                    if prepare_script.exists():
+                        config_data["prepare_script"] = str(prepare_script)
+                    
+                    configurations.append(config_data)
         
         return configurations
     
-    def select_mcp_configuration(self) -> str:
+    def select_mcp_configuration(self) -> dict[str, str]:
         """Let user select an MCP configuration."""
         print("🔍 Discovering available MCP configurations...")
         print()
@@ -68,7 +75,8 @@ class MCPConfigGenerator:
         
         if not configurations:
             print("❌ No MCP configurations found!")
-            print(f"Please ensure mcp_template.json files exist in subdirectories of {self.mcp_agent_packs_dir}")
+            print(f"Please ensure mcp_template.json files exist in subdirectories of "
+                  f"{self.mcp_agent_packs_dir}")
             raise FileNotFoundError("No MCP configurations available")
         
         print(f"Found {len(configurations)} MCP configuration(s):")
@@ -93,9 +101,10 @@ class MCPConfigGenerator:
                 if 1 <= choice_num <= len(configurations):
                     selected_config = configurations[choice_num - 1]
                     print(f"✓ Selected: {selected_config['name']}")
-                    return selected_config['path']
+                    return selected_config
                 else:
-                    print(f"❌ Invalid selection! Please enter a number between 1 and {len(configurations)}")
+                    print(f"❌ Invalid selection! Please enter a number between 1 and "
+                          f"{len(configurations)}")
             except ValueError:
                 print("❌ Please enter a valid number!")
             except KeyboardInterrupt:
@@ -356,10 +365,39 @@ def main():
         )
         
         # Let user select configuration
-        selected_template_path = generator.select_mcp_configuration()
+        selected_config = generator.select_mcp_configuration()
         
         # Update template path
-        generator.template_path = Path(selected_template_path)
+        generator.template_path = Path(selected_config["path"])
+        
+        # Execute prepare.py if it exists
+        if "prepare_script" in selected_config:
+            prepare_script_path = selected_config['prepare_script']
+            print(f"\n🔧 Running preparation script: {prepare_script_path}")
+            try:
+                # Use the same python interpreter that runs this script
+                result = subprocess.run(
+                    [sys.executable, prepare_script_path],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                    encoding='utf-8'
+                )
+                if result.stdout:
+                    print(result.stdout.strip())
+                if result.stderr:
+                    print(result.stderr.strip())
+                print("✅ Preparation script finished successfully.")
+            except subprocess.CalledProcessError as e:
+                print(f"❌ Error running preparation script: {prepare_script_path}")
+                if e.stdout:
+                    print(e.stdout.strip())
+                if e.stderr:
+                    print(e.stderr.strip())
+                return 1
+            except FileNotFoundError:
+                print(f"❌ Python executable not found: {sys.executable}")
+                return 1
         
         # Validate the selected configuration
         if not generator.validate_selected_configuration():
